@@ -1,0 +1,21 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    hostname: my-rabbit
+    container_name: rabbitmq
+    restart: unless-stopped
+    build:
+      context: .
+    environment:
+      - RABBITMQ_DEFAULT_USER=${user}
+      - RABBITMQ_DEFAULT_PASS=${password}
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    ports:
+      - "5672:5672"  # RabbitMQ default port
+      - "15672:15672"  # RabbitMQ Management Plugin port
+      - "1883:1883" # mqtt
+      - "1885:15675"
+    command: "/bin/bash -c \"rabbitmq-plugins enable --offline rabbitmq_mqtt rabbitmq_web_mqtt rabbitmq_amqp1_0; rabbitmq-server\""
+
