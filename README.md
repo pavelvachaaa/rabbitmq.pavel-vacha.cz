@@ -1,0 +1,1 @@
+# rabbitmq.pavel-vacha.cz
