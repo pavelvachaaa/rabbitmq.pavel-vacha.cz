@@ -2,25 +2,43 @@ package main
 
 import (
 	"fmt"
-	"mqtt-publisher-subscriber-golang/consts"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
+var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
+}
+
+var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
+	fmt.Println("Connected")
+}
+
+var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
+	fmt.Printf("Connect lost: %v", err)
+}
+
 func main() {
-
+	var broker = "pavel-vacha.cz"
+	var port = 1883
 	opts := mqtt.NewClientOptions()
-	opts.AddBroker(consts.Broker)
-
+	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, port))
+	opts.SetClientID("go_mqtt_client")
+	// opts.SetUsername()
+	// opts.SetPassword()
+	opts.SetDefaultPublishHandler(messagePubHandler)
+	opts.OnConnect = connectHandler
+	opts.OnConnectionLost = connectLostHandler
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		panic(fmt.Sprintf("Error connecting to MQTT broker:", token.Error()))
-	}
+		fmt.Println("Panikuji")
 
-	for i := 1; i <= 10; i++ {
+		panic(token.Error())
+	}
+	for i := 1; i <= 100; i++ {
 		message := fmt.Sprintf("Publishing message %d", i)
-		token := client.Publish(consts.Topic, 0, false, message)
+		token := client.Publish("gnss", 0, false, message)
 		token.Wait()
 
 		fmt.Println("Published:", message)
